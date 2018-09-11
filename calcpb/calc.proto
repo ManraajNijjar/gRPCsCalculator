@@ -24,10 +24,22 @@ message PrimeNumberDecompResponse{
     int32 result = 1;
 }
 
+message ComputeAverageRequest{
+    int32 number = 1;
+}
+
+message ComputeAverageResponse{
+    int32 result = 1;
+}
+
 service CalculationService{
     rpc Calculate(CalculationRequest) returns (CalculationResponse) {
 
     };
 
     rpc PrimeNumberDecomp(PrimeNumberDecompRequest) returns (stream PrimeNumberDecompResponse) {};
+
+    rpc ComputeAverage(stream ComputeAverageRequest) returns (ComputeAverageResponse){
+
+    };
 };
