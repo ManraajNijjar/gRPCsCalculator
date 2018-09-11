@@ -63,6 +63,41 @@ func (*server) ComputeAverage(stream calcpb.CalculationService_ComputeAverageSer
 	}
 }
 
+func (*server) FindMaximum(stream calcpb.CalculationService_FindMaximumServer) error {
+	firstNumSet := false
+	var max float32
+	for {
+		req, err := stream.Recv()
+		if err == io.EOF {
+			return nil
+		}
+		if err != nil {
+			log.Fatalf("Error while reading: %v", err)
+		}
+		sentValue := req.GetNumber()
+
+		if !firstNumSet {
+			firstNumSet = true
+			max = sentValue
+			sendErr := stream.Send(&calcpb.FindMaxResponse{
+				Result: max,
+			})
+			if sendErr != nil {
+				log.Fatalf("Error while sending: %v", err)
+			}
+		} else if max < sentValue {
+			max = sentValue
+			sendErr := stream.Send(&calcpb.FindMaxResponse{
+				Result: max,
+			})
+			if sendErr != nil {
+				log.Fatalf("Error while sending: %v", err)
+			}
+		}
+
+	}
+}
+
 func main() {
 	lis, err := net.Listen("tcp", "0.0.0.0:50051")
 	if err != nil {

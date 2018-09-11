@@ -24,7 +24,8 @@ func main() {
 
 	//getCalc(c)
 	//getDecomp(c)
-	getAverage(c)
+	//getAverage(c)
+	getMax(c)
 }
 
 func getCalc(c calcpb.CalculationServiceClient) {
@@ -98,4 +99,61 @@ func getAverage(c calcpb.CalculationServiceClient) {
 	}
 
 	fmt.Printf("Average: %v", res)
+}
+
+func getMax(c calcpb.CalculationServiceClient) {
+	stream, err := c.FindMaximum(context.Background())
+
+	if err != nil {
+		log.Fatalf("error calling findMax: %v", err)
+	}
+	requests := []*calcpb.FindMaxRequest{
+		&calcpb.FindMaxRequest{
+			Number: 1,
+		},
+		&calcpb.FindMaxRequest{
+			Number: 5,
+		},
+		&calcpb.FindMaxRequest{
+			Number: 3,
+		},
+		&calcpb.FindMaxRequest{
+			Number: 6,
+		},
+		&calcpb.FindMaxRequest{
+			Number: 2,
+		},
+		&calcpb.FindMaxRequest{
+			Number: 20,
+		},
+	}
+
+	waitc := make(chan struct{})
+	go func() {
+		for _, req := range requests {
+			fmt.Println("Sending value")
+			stream.Send(req)
+			time.Sleep(1000 * time.Millisecond)
+		}
+		err := stream.CloseSend()
+		if err != nil {
+			log.Fatalf("error closing stream: %v", err)
+		}
+	}()
+
+	go func() {
+		for {
+			res, err := stream.Recv()
+			if err == io.EOF {
+				close(waitc)
+			}
+			if err != nil {
+				log.Fatalf("Error recieving: %v", err)
+				close(waitc)
+			}
+			fmt.Printf("Received New Max: %v", res.GetResult())
+		}
+	}()
+
+	<-waitc
 }
