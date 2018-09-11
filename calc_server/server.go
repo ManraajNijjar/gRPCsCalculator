@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"grpcCourse/calculator/calcpb"
+	"io"
 	"log"
 	"net"
 
@@ -40,6 +41,26 @@ func (*server) PrimeNumberDecomp(req *calcpb.PrimeNumberDecompRequest, stream ca
 		}
 	}
 	return nil
+}
+
+func (*server) ComputeAverage(stream calcpb.CalculationService_ComputeAverageServer) error {
+	result := int32(0)
+	n := int32(0)
+	for {
+		req, err := stream.Recv()
+		if err == io.EOF {
+			//Finished reading from stream
+			return stream.SendAndClose(&calcpb.ComputeAverageResponse{
+				Result: result / n,
+			})
+		}
+		if err != nil {
+			log.Fatalf("Error while reading: %v", err)
+		}
+
+		result += req.GetNumber()
+		n++
+	}
 }
 
 func main() {

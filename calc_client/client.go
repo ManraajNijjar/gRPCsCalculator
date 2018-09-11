@@ -2,9 +2,11 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"grpcCourse/calculator/calcpb"
 	"io"
 	"log"
+	"time"
 
 	"google.golang.org/grpc"
 )
@@ -21,7 +23,8 @@ func main() {
 	c := calcpb.NewCalculationServiceClient(conn)
 
 	//getCalc(c)
-	getDecomp(c)
+	//getDecomp(c)
+	getAverage(c)
 }
 
 func getCalc(c calcpb.CalculationServiceClient) {
@@ -33,7 +36,7 @@ func getCalc(c calcpb.CalculationServiceClient) {
 	}
 	res, err := c.Calculate(context.Background(), req)
 	if err != nil {
-		log.Fatalf("Error calling greet: %v", err)
+		log.Fatalf("Error calling decomp: %v", err)
 	}
 	log.Printf("Calculation: %v", res.Result)
 }
@@ -45,7 +48,7 @@ func getDecomp(c calcpb.CalculationServiceClient) {
 	resStream, err := c.PrimeNumberDecomp(context.Background(), req)
 
 	if err != nil {
-		log.Fatalf("error calling stream greet: %v", err)
+		log.Fatalf("error calling stream decomp %v", err)
 	}
 
 	for {
@@ -58,4 +61,41 @@ func getDecomp(c calcpb.CalculationServiceClient) {
 		}
 		log.Printf("factor: %v", factor.GetResult())
 	}
+}
+
+func getAverage(c calcpb.CalculationServiceClient) {
+	stream, err := c.ComputeAverage(context.Background())
+
+	requests := []*calcpb.ComputeAverageRequest{
+		&calcpb.ComputeAverageRequest{
+			Number: 1,
+		},
+		&calcpb.ComputeAverageRequest{
+			Number: 2,
+		},
+		&calcpb.ComputeAverageRequest{
+			Number: 3,
+		},
+		&calcpb.ComputeAverageRequest{
+			Number: 4,
+		},
+	}
+
+	if err != nil {
+		log.Fatalf("error calling average: %v", err)
+	}
+
+	for _, req := range requests {
+		fmt.Println("Sending req")
+		stream.Send(req)
+		time.Sleep(1000 * time.Millisecond)
+	}
+
+	res, err := stream.CloseAndRecv()
+
+	if err != nil {
+		log.Fatalf("error recieving average: %v", err)
+	}
+
+	fmt.Printf("Average: %v", res)
 }
