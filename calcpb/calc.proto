@@ -25,11 +25,11 @@ message PrimeNumberDecompResponse{
 }
 
 message ComputeAverageRequest{
-    int32 number = 1;
+    float number = 1;
 }
 
 message ComputeAverageResponse{
-    int32 result = 1;
+    float result = 1;
 }
 
 service CalculationService{

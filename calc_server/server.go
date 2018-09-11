@@ -44,8 +44,8 @@ func (*server) PrimeNumberDecomp(req *calcpb.PrimeNumberDecompRequest, stream ca
 }
 
 func (*server) ComputeAverage(stream calcpb.CalculationService_ComputeAverageServer) error {
-	result := int32(0)
-	n := int32(0)
+	result := float32(0)
+	n := float32(0)
 	for {
 		req, err := stream.Recv()
 		if err == io.EOF {
