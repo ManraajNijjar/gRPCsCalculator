@@ -40,6 +40,14 @@ message FindMaxResponse{
     float result = 1;
 }
 
+message SquareRootRequest{
+    float number = 1;
+}
+
+message SquareRootResponse{
+    float result = 1;
+}
+
 service CalculationService{
     rpc Calculate(CalculationRequest) returns (CalculationResponse) {
 
@@ -52,6 +60,12 @@ service CalculationService{
     };
 
     rpc FindMaximum(stream FindMaxRequest) returns (stream FindMaxResponse){
+
+    }
+
+    //Will throw an exception if request is negative
+    //Error is type of invalid_argument
+    rpc SquareRoot(SquareRootRequest) returns (SquareRootResponse){
 
     }
 };

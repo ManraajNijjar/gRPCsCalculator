@@ -8,7 +8,10 @@ import (
 	"log"
 	"time"
 
+	"google.golang.org/grpc/codes"
+
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/status"
 )
 
 func main() {
@@ -25,7 +28,8 @@ func main() {
 	//getCalc(c)
 	//getDecomp(c)
 	//getAverage(c)
-	getMax(c)
+	//getMax(c)
+	getSquareRoot(c)
 }
 
 func getCalc(c calcpb.CalculationServiceClient) {
@@ -156,4 +160,26 @@ func getMax(c calcpb.CalculationServiceClient) {
 	}()
 
 	<-waitc
+}
+
+func getSquareRoot(c calcpb.CalculationServiceClient) {
+	fmt.Println("Starting SquareRoot")
+
+	res, err := c.SquareRoot(context.Background(), &calcpb.SquareRootRequest{
+		Number: -10,
+	})
+
+	if err != nil {
+		respErr, ok := status.FromError(err)
+		if ok {
+			fmt.Println(respErr.Message())
+			fmt.Println(respErr.Code())
+			if respErr.Code() == codes.InvalidArgument {
+				fmt.Println("Negative Number")
+			}
+		} else {
+			log.Fatalf("Big Error from SquareRoot: %v", err)
+		}
+	}
+	fmt.Println("Square Root: %v", res.GetResult())
 }
