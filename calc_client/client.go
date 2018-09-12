@@ -25,23 +25,37 @@ func main() {
 
 	c := calcpb.NewCalculationServiceClient(conn)
 
-	//getCalc(c)
 	//getDecomp(c)
 	//getAverage(c)
 	//getMax(c)
-	getSquareRoot(c)
+	//getSquareRoot(c)
+	getCalc(c, 1)
+	getCalc(c, 5)
 }
 
-func getCalc(c calcpb.CalculationServiceClient) {
+func getCalc(c calcpb.CalculationServiceClient, timeOutTime int) {
+
 	req := &calcpb.CalculationRequest{
 		Calculation: &calcpb.Calculation{
 			FirstInt:  10,
 			SecondInt: 15,
 		},
 	}
-	res, err := c.Calculate(context.Background(), req)
+	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(timeOutTime)*time.Second)
+	defer cancel()
+	res, err := c.Calculate(ctx, req)
 	if err != nil {
-		log.Fatalf("Error calling decomp: %v", err)
+		statusErr, ok := status.FromError(err)
+		if ok {
+			if statusErr.Code() == codes.DeadlineExceeded {
+				fmt.Println("Timeout was hit")
+			} else {
+				fmt.Println("Unexpected Error: %v", statusErr)
+			}
+		} else {
+			log.Fatalf("Error calling Calculate: %v", err)
+		}
+		return
 	}
 	log.Printf("Calculation: %v", res.Result)
 }

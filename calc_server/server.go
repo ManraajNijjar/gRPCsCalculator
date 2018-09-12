@@ -8,6 +8,7 @@ import (
 	"log"
 	"math"
 	"net"
+	"time"
 
 	"google.golang.org/grpc/codes"
 
@@ -18,6 +19,14 @@ import (
 type server struct{}
 
 func (*server) Calculate(ctx context.Context, req *calcpb.CalculationRequest) (*calcpb.CalculationResponse, error) {
+
+	for i := 0; i < 3; i++ {
+		if ctx.Err() == context.Canceled {
+			fmt.Println("Client cancelled")
+			return nil, status.Error(codes.Canceled, "the client cancelled the request")
+		}
+		time.Sleep(1 * time.Second)
+	}
 
 	responseValue := req.GetCalculation().GetFirstInt() + req.GetCalculation().GetSecondInt()
 
